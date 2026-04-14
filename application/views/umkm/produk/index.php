@@ -25,11 +25,16 @@
         </li>
         <hr class="sidebar-divider">
         <div class="sidebar-heading">Kelola</div>
-        <li class="nav-item active">
-            <a class="nav-link" href="<?= base_url('index.php/umkm/produk') ?>">
-                <i class="fas fa-fw fa-box"></i><span>Kelola Produk</span>
-            </a>
-        </li>
+       <li class="nav-item active">
+    <a class="nav-link" href="<?= base_url('index.php/umkm/produk') ?>">
+        <i class="fas fa-fw fa-box"></i><span>Kelola Produk</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="<?= base_url('index.php/umkm/laporan') ?>">
+        <i class="fas fa-fw fa-chart-bar"></i><span>Laporan Penjualan</span>
+    </a>
+</li>
         <hr class="sidebar-divider d-none d-md-block">
         <div class="text-center d-none d-md-inline">
             <button class="rounded-circle border-0" id="sidebarToggle"></button>

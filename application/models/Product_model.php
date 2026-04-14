@@ -59,4 +59,27 @@ class Product_model extends CI_Model {
     public function delete($id) {
         return $this->db->delete($this->table, ['id' => $id]);
     }
+
+
+    public function get_produk($keyword = null, $kategori = null)
+    {
+        $this->db->select('*');
+        $this->db->from('produk');
+
+        if ($keyword) {
+            $this->db->like('nama', $keyword);
+        }
+
+        if ($kategori) {
+            $this->db->where('kategori_id', $kategori);
+        }
+
+        return $this->db->get()->result();
+    }
+
+    public function get_by_id($id)
+    {
+        return $this->db->get_where('produk', ['id' => $id])->row();
+    }
 }
+

@@ -49,18 +49,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
-$route['default_controller'] = 'welcome';
+
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 $route['default_controller'] = 'Home';
-$route['404_override']       = '';
-$route['translate_uri_dashes'] = FALSE;
  
 // Auth
-$route['login']              = 'Auth/login';
-$route['register']           = 'Auth/register';
-$route['verifikasi-otp']     = 'Auth/verifikasi_otp';
-$route['logout']             = 'Auth/logout';
+$route['login']           = 'Auth/login';
+$route['proses-login']    = 'Auth/proses_login';
+$route['register']        = 'Auth/register';
+$route['proses-register'] = 'Auth/proses_register';
+$route['verifikasi-otp']  = 'Auth/verifikasi_otp';
+$route['proses-otp']      = 'Auth/proses_otp';
+$route['resend-otp']      = 'Auth/resend_otp';
+$route['logout']          = 'Auth/logout';
+ 
  
 // Landing page & search
 $route['produk']             = 'Home/produk';
@@ -86,6 +89,7 @@ $route['admin/users/(:num)/edit']    = 'Admin/edit_user/$1';
 $route['admin/users/(:num)/update']  = 'Admin/update_user/$1';
 $route['admin/users/(:num)/hapus']   = 'Admin/hapus_user/$1';
 $route['admin/users']                = 'Admin/kelola_users';
+$route['admin/laporan'] = 'Admin/laporan';
  
 // UMKM
 $route['umkm/dashboard']          = 'Umkm/dashboard';
@@ -96,3 +100,7 @@ $route['umkm/produk/(:num)/edit'] = 'Umkm/edit_produk/$1';
 $route['umkm/produk/(:num)/hapus']= 'Umkm/hapus_produk/$1';
 $route['umkm/produk/simpan']           = 'Umkm/simpan_produk';
 $route['umkm/produk/(:num)/update']    = 'Umkm/update_produk/$1';
+$route['umkm/laporan']                    = 'Umkm/laporan';
+$route['umkm/pesanan/(:num)/status']      = 'Umkm/update_status_pesanan/$1';
+
+$route['default_controller'] = 'user';

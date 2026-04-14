@@ -8,7 +8,7 @@ class Umkm extends MY_Controller {
         if (!$this->session->userdata('user_id') || $this->session->userdata('role') !== 'umkm') {
             redirect('index.php/login');
         }
-        $this->load->model(['User_model', 'Umkm_model', 'Product_model', 'Kategori_model']);
+        $this->load->model(['User_model', 'Umkm_model', 'Product_model', 'Kategori_model', 'Pesanan_model']);
     }
 
     public function dashboard() {
@@ -22,12 +22,57 @@ class Umkm extends MY_Controller {
         $umkm     = $this->Umkm_model->get_by_user($user_id);
         $products = $umkm ? $this->Product_model->get_by_umkm($umkm->id) : [];
 
+        $total_pesanan = 0;
+        $total_pending = 0;
+        $total_omzet   = 0;
+        if ($umkm) {
+            $pesanan       = $this->Pesanan_model->get_by_umkm($umkm->id);
+            $total_pesanan = count($pesanan);
+            $total_pending = count(array_filter($pesanan, fn($p) => $p->status === 'pending'));
+            $total_omzet   = array_sum(array_map(fn($p) => $p->total_harga, array_filter($pesanan, fn($p) => $p->status === 'selesai')));
+        }
+
         $this->load->view('umkm/dashboard', [
-            'title'    => 'Dashboard UMKM',
-            'user'     => $user,
-            'umkm'     => $umkm,
-            'products' => $products,
+            'title'         => 'Dashboard UMKM',
+            'user'          => $user,
+            'umkm'          => $umkm,
+            'products'      => $products,
+            'total_pesanan' => $total_pesanan,
+            'total_pending' => $total_pending,
+            'total_omzet'   => $total_omzet,
         ]);
+    }
+
+    public function laporan() {
+        $user_id = $this->session->userdata('user_id');
+        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        if (!$umkm) {
+            $this->session->set_flashdata('error', 'UMKM tidak ditemukan.');
+            redirect('index.php/umkm/dashboard');
+        }
+
+        $pesanan       = $this->Pesanan_model->get_by_umkm($umkm->id);
+        $total_pesanan = count($pesanan);
+        $total_pending = count(array_filter($pesanan, fn($p) => $p->status === 'pending'));
+        $total_selesai = count(array_filter($pesanan, fn($p) => $p->status === 'selesai'));
+        $total_omzet   = array_sum(array_map(fn($p) => $p->total_harga, array_filter($pesanan, fn($p) => $p->status === 'selesai')));
+
+        $this->load->view('umkm/laporan', [
+            'title'         => 'Laporan Penjualan',
+            'umkm'          => $umkm,
+            'pesanan'       => $pesanan,
+            'total_pesanan' => $total_pesanan,
+            'total_omzet'   => $total_omzet,
+            'total_pending' => $total_pending,
+            'total_selesai' => $total_selesai,
+        ]);
+    }
+
+    public function update_status($id) {
+        $status = $this->input->post('status');
+        $this->Pesanan_model->update_status($id, $status);
+        $this->session->set_flashdata('success', 'Status pesanan diupdate.');
+        redirect('index.php/umkm/laporan');
     }
 
     public function kelola_produk() {
@@ -195,4 +240,19 @@ class Umkm extends MY_Controller {
 
         redirect('index.php/umkm/dashboard');
     }
+
+    public function update_status_pesanan($id)
+{
+    $status = $this->input->post('status');
+
+    if (!$status) {
+        $this->session->set_flashdata('error', 'Status tidak valid.');
+        redirect('index.php/umkm/laporan');
+    }
+
+    $this->Pesanan_model->update_status($id, $status);
+
+    $this->session->set_flashdata('success', 'Status pesanan diupdate.');
+    redirect('index.php/umkm/laporan');
+}
 }

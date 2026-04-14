@@ -239,4 +239,24 @@ class Admin extends Admin_Controller {
             return false;
         }
     }
+
+    public function laporan() {
+    $this->load->model('Pesanan_model');
+    $pesanan = $this->db
+        ->select('pesanan.*, umkm.nama_toko')
+        ->from('pesanan')
+        ->join('umkm', 'umkm.id = pesanan.umkm_id', 'left')
+        ->order_by('pesanan.created_at', 'DESC')
+        ->get()->result();
+
+    $data['title']         = 'Laporan Penjualan';
+    $data['pesanan']       = $pesanan;
+    $data['total_pesanan'] = count($pesanan);
+    $data['total_omzet']   = array_sum(array_map(fn($p) => $p->total_harga, $pesanan));
+    $data['total_pending'] = count(array_filter($pesanan, fn($p) => $p->status === 'pending'));
+    $data['total_selesai'] = count(array_filter($pesanan, fn($p) => $p->status === 'selesai'));
+    $this->render('admin/laporan', $data);
+}
+
+
 }
