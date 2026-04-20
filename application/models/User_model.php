@@ -29,10 +29,15 @@ class User_model extends CI_Model {
         return $this->db->where('username', $username)->count_all_results($this->table) > 0;
     }
 
-    public function create($data) {
-        $this->db->insert($this->table, $data);
-        return $this->db->insert_id();
+   public function create($data) {
+    $insert = $this->db->insert('users', $data);
+
+    if (!$insert) {
+        return false;
     }
+
+    return $this->db->insert_id();
+}
 
     public function update_wa_verified($id, $no_wa) {
         $this->db->update($this->table, [

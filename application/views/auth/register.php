@@ -2,142 +2,121 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Verifikasi OTP</title>
+<title>Register UMKM</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Segoe UI;background:linear-gradient(135deg,#1cc88a,#13855c);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{width:100%;max-width:420px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 15px 35px rgba(0,0,0,.25)}
-.header{background:#1cc88a;color:#fff;text-align:center;padding:28px 20px}
-.header i.big{font-size:40px;margin-bottom:10px;display:block}
-.header h2{margin:0;font-size:20px;font-weight:700}
-.header p{margin:6px 0 0;font-size:13px;opacity:.85}
-.body{padding:28px}
-.alert{padding:11px 14px;border-radius:10px;margin-bottom:16px;font-size:13px;display:flex;align-items:flex-start;gap:8px}
-.alert-danger{background:#fde8e8;color:#c0392b;border-left:4px solid #e74c3c}
-.alert-warning{background:#fff8e1;color:#856404;border-left:4px solid #ffc107}
-.alert-info{background:#e8f4fd;color:#1a6fa8;border-left:4px solid #3498db}
-
-/* Kotak tampil OTP */
-.otp-box{background:linear-gradient(135deg,#f0fff8,#e0faf0);border:2px dashed #1cc88a;border-radius:14px;padding:22px;text-align:center;margin-bottom:22px}
-.otp-box-label{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:10px}
-.otp-code{font-size:44px;font-weight:900;letter-spacing:14px;color:#13855c;font-family:monospace;line-height:1}
-.otp-expire{font-size:12px;color:#888;margin-top:8px}
-.otp-expire i{margin-right:4px}
-
-/* Info nomor */
-.wa-info{text-align:center;margin-bottom:20px;font-size:14px;color:#555}
-.wa-info i{color:#1cc88a;margin-right:5px}
-.wa-info strong{color:#13855c}
-
-/* Input */
-.otp-input{width:100%;padding:15px;font-size:34px;font-weight:900;letter-spacing:12px;text-align:center;border:2px solid #ddd;border-radius:12px;outline:none;transition:.2s;font-family:monospace;color:#333;background:#fafafa}
-.otp-input:focus{border-color:#1cc88a;box-shadow:0 0 0 3px rgba(28,200,138,.15);background:#fff}
-.hint{font-size:12px;color:#bbb;text-align:center;margin-top:7px}
-
-/* Button */
-.btn{width:100%;padding:13px;font-size:15px;font-weight:700;border:none;border-radius:11px;cursor:pointer;margin-top:14px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-success{background:#1cc88a;color:#fff}
-.btn-success:hover{background:#17a673}
-
-/* Footer */
-.footer-links{text-align:center;margin-top:20px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
-.footer-links a{color:#1cc88a;text-decoration:none;font-weight:600}
-.footer-links a:hover{text-decoration:underline}
-.footer-links .sep{color:#ddd}
-.footer-links .logout-link{color:#bbb;font-weight:400}
-#resendCountdown{color:#aaa;font-size:13px}
-#resendBtn{display:none}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI;background:linear-gradient(135deg,#4e73df,#224abe);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{width:100%;max-width:460px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 15px 35px rgba(0,0,0,.25)}
+.header{background:#4e73df;color:#fff;text-align:center;padding:24px}
+.header i{font-size:36px;margin-bottom:8px;display:block}
+.header h2{margin:0;font-size:20px}
+.header p{margin:5px 0 0;font-size:13px;opacity:.85}
+.body{padding:26px}
+.group{margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#333}
+.input{width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;outline:none;transition:.2s;font-size:14px;font-family:Segoe UI}
+.input:focus{border-color:#4e73df;box-shadow:0 0 0 3px rgba(78,115,223,.15)}
+.pw-box{position:relative}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999}
+.progress{height:5px;background:#eee;border-radius:10px;overflow:hidden;margin-top:6px}
+.bar{height:100%;width:0%;transition:.3s;border-radius:10px}
+.role{display:flex;gap:12px}
+.role-item{flex:1}
+.role-item input{display:none}
+.role-label{display:block;padding:12px;text-align:center;border:1.5px solid #ddd;border-radius:10px;cursor:pointer;transition:.2s;font-size:13px;font-weight:500}
+.role-label i{display:block;font-size:18px;margin-bottom:5px;color:#aaa}
+.role-item input:checked+.role-label{border-color:#4e73df;background:rgba(78,115,223,.08)}
+.role-item input:checked+.role-label i{color:#4e73df}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;background:#1cc88a;color:#fff;font-weight:700;cursor:pointer;font-size:14px;margin-top:4px;transition:.2s}
+.btn:hover{background:#17a673}
+.footer{text-align:center;margin-top:16px;font-size:13px;color:#666}
+.footer a{color:#4e73df;font-weight:700;text-decoration:none}
+.alert{padding:11px 14px;border-radius:8px;margin-bottom:16px;font-size:13px;border-left:4px solid #e74c3c;background:#fde8e8;color:#c0392b;display:flex;gap:8px;align-items:center}
+small{font-size:12px;color:#999}
 </style>
 </head>
 <body>
 <div class="card">
     <div class="header">
-        <i class="fas fa-shield-alt big"></i>
-        <h2>Verifikasi Akun</h2>
-        <p>Masukkan kode OTP untuk aktivasi</p>
+        <i class="fas fa-store"></i>
+        <h2>UMKM Catalog</h2>
+        <p>Buat akun baru</p>
     </div>
     <div class="body">
 
         <?php if ($this->session->flashdata('error')): ?>
-            <div class="alert alert-danger">
+            <div class="alert">
                 <i class="fas fa-exclamation-circle"></i>
-                <span><?= $this->session->flashdata('error') ?></span>
+                <?= $this->session->flashdata('error') ?>
             </div>
         <?php endif; ?>
 
-        <?php if ($this->session->flashdata('info')): ?>
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i>
-                <span><?= $this->session->flashdata('info') ?></span>
+        <form action="<?= base_url('index.php/proses-register') ?>" method="POST">
+            <div class="group">
+                <label>Nama Lengkap</label>
+                <input type="text" name="nama" class="input" placeholder="Nama lengkap kamu" required>
             </div>
-        <?php endif; ?>
-
-        <?php if ($this->session->flashdata('warning')): ?>
-            <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span><?= $this->session->flashdata('warning') ?></span>
+            <div class="group">
+                <label>Nomor WhatsApp</label>
+                <input type="text" name="no_wa" class="input" placeholder="08xxxxxxxxxx" required>
+                <small>Digunakan untuk login & verifikasi OTP</small>
             </div>
-        <?php endif; ?>
-
-        <?php
-        $otp_tampil = $this->session->userdata('otp_plain');
-        $no_wa      = $this->session->userdata('no_wa');
-        $masked     = $no_wa ? substr($no_wa, 0, 5) . '****' . substr($no_wa, -4) : '-';
-        ?>
-
-        <?php if ($otp_tampil): ?>
-        <div class="otp-box">
-            <div class="otp-box-label"><i class="fas fa-key"></i> Kode OTP Kamu</div>
-            <div class="otp-code"><?= $otp_tampil ?></div>
-            <div class="otp-expire"><i class="fas fa-clock"></i> Berlaku 5 menit</div>
-        </div>
-        <?php endif; ?>
-
-        <div class="wa-info">
-            <i class="fab fa-whatsapp"></i>
-            OTP juga dikirim ke <strong><?= $masked ?></strong>
-        </div>
-
-        <form action="<?= base_url('index.php/proses-otp') ?>" method="POST" id="formOtp">
-            <input type="text" name="otp" id="otpInput" class="otp-input"
-                   placeholder="------" maxlength="6"
-                   required autofocus autocomplete="one-time-code"
-                   inputmode="numeric" pattern="[0-9]{6}">
-            <div class="hint"><i class="fas fa-magic"></i> Otomatis terkirim saat 6 digit terisi</div>
-            <button type="submit" class="btn btn-success">
-                <i class="fas fa-check-circle"></i> Verifikasi Akun
+            <div class="group">
+                <label>Password</label>
+                <div class="pw-box">
+                    <input type="password" id="pw" name="password" class="input"
+                           placeholder="Min 8 karakter" minlength="8" required>
+                    <span class="eye" onclick="togglePw()">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </span>
+                </div>
+                <div class="progress"><div id="bar" class="bar"></div></div>
+                <small id="strength"></small>
+            </div>
+            <div class="group">
+                <label>Daftar sebagai</label>
+                <div class="role">
+                    <div class="role-item">
+                        <input type="radio" id="r_user" name="role" value="user" checked>
+                        <label class="role-label" for="r_user">
+                            <i class="fas fa-user"></i> Pembeli
+                        </label>
+                    </div>
+                    <div class="role-item">
+                        <input type="radio" id="r_umkm" name="role" value="umkm">
+                        <label class="role-label" for="r_umkm">
+                            <i class="fas fa-store"></i> Pemilik UMKM
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn">
+                <i class="fas fa-user-plus"></i> Daftar & Verifikasi WA
             </button>
         </form>
 
-        <div class="footer-links">
-            <span id="resendCountdown">
-                Kirim ulang dalam <strong id="countdown">60</strong>s
-            </span>
-            <a href="<?= base_url('index.php/resend-otp') ?>" id="resendBtn">
-                <i class="fas fa-redo"></i> Kirim Ulang OTP
-            </a>
-            <span class="sep">|</span>
-            <a href="<?= base_url('index.php/logout') ?>" class="logout-link">Logout</a>
+        <div class="footer">
+            Sudah punya akun?
+            <a href="<?= base_url('index.php/login') ?>">Login di sini</a>
         </div>
     </div>
 </div>
 <script>
-document.getElementById('otpInput').addEventListener('input',function(){
-    this.value=this.value.replace(/[^0-9]/g,'');
-    if(this.value.length===6) document.getElementById('formOtp').submit();
+function togglePw(){
+    const i=document.getElementById('pw'),ic=document.getElementById('eyeIcon');
+    if(i.type==='password'){i.type='text';ic.classList.replace('fa-eye','fa-eye-slash')}
+    else{i.type='password';ic.classList.replace('fa-eye-slash','fa-eye')}
+}
+document.getElementById('pw').addEventListener('input',function(){
+    const v=this.value,bar=document.getElementById('bar'),txt=document.getElementById('strength');
+    let s=0;
+    if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+    const l=[['25%','#e74a3b','Lemah'],['50%','#f6c23e','Cukup'],['75%','#36b9cc','Kuat'],['100%','#1cc88a','Sangat Kuat']];
+    const d=l[Math.max(0,s-1)];
+    bar.style.width=v?d[0]:'0%';bar.style.background=v?d[1]:'#eee';txt.innerText=v?d[2]:'';
 });
-(function(){
-    let s=60;
-    const cd=document.getElementById('countdown');
-    const cdW=document.getElementById('resendCountdown');
-    const btn=document.getElementById('resendBtn');
-    const t=setInterval(()=>{
-        s--;cd.textContent=s;
-        if(s<=0){clearInterval(t);cdW.style.display='none';btn.style.display='inline'}
-    },1000);
-})();
 </script>
 </body>
 </html>
