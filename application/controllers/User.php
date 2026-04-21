@@ -33,36 +33,37 @@ class User extends CI_Controller {
     }
 
     public function tambah_keranjang() {
-        $id_produk = $this->input->post('id_produk');
-        $qty       = (int) $this->input->post('qty') ?: 1;
+    $id_produk = $this->input->post('id_produk');
+    $qty       = (int) $this->input->post('qty') ?: 1;
 
-        $produk = $this->Product_model->get($id_produk);
-        if (!$produk) show_error('Produk tidak ditemukan', 404);
+    $produk = $this->Product_model->get($id_produk);
+    if (!$produk) show_error('Produk tidak ditemukan', 404);
 
-        $keranjang = $this->session->userdata('keranjang') ?? [];
+    $keranjang = $this->session->userdata('keranjang') ?? [];
 
-        if (isset($keranjang[$id_produk])) {
-            $keranjang[$id_produk]['qty'] += $qty;
-        } else {
-            $keranjang[$id_produk] = [
-                'id'      => $produk->id,
-                'nama'    => $produk->nama,
-                'harga'   => $produk->harga,
-                'foto'    => $produk->foto,
-                'umkm_id' => $produk->umkm_id,
-                'qty'     => $qty,
-            ];
-        }
-
-        $this->session->set_userdata('keranjang', $keranjang);
-
-        if ($this->input->is_ajax_request()) {
-            echo json_encode(['status' => 'ok', 'total' => count($keranjang)]);
-            return;
-        }
-
-        redirect('index.php/user/keranjang');
+    if (isset($keranjang[$id_produk])) {
+        $keranjang[$id_produk]['qty'] += $qty;
+    } else {
+        $keranjang[$id_produk] = [
+            'id'      => $produk->id,
+            'nama'    => $produk->nama,
+            'harga'   => $produk->harga,
+            'foto'    => $produk->foto,
+            'umkm_id' => $produk->umkm_id,
+            'qty'     => $qty,
+        ];
     }
+
+    $this->session->set_userdata('keranjang', $keranjang);
+
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status'    => 'ok',
+        'total'     => count($keranjang),
+        'csrf_hash' => $this->security->get_csrf_hash(),
+    ]);
+    exit;
+}
 
     public function keranjang() {
         $keranjang   = $this->session->userdata('keranjang') ?? [];
@@ -88,24 +89,28 @@ class User extends CI_Controller {
     }
 
     public function update_keranjang() {
-        $id   = $this->input->post('id');
-        $aksi = $this->input->post('aksi');
+    $id   = $this->input->post('id');
+    $aksi = $this->input->post('aksi');
 
-        $keranjang = $this->session->userdata('keranjang') ?? [];
+    $keranjang = $this->session->userdata('keranjang') ?? [];
 
-        if (isset($keranjang[$id])) {
-            if ($aksi === 'tambah') {
-                $keranjang[$id]['qty']++;
-            } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] > 1) {
-                $keranjang[$id]['qty']--;
-            } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] <= 1) {
-                unset($keranjang[$id]);
-            }
+    if (isset($keranjang[$id])) {
+        if ($aksi === 'tambah') {
+            $keranjang[$id]['qty']++;
+        } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] > 1) {
+            $keranjang[$id]['qty']--;
+        } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] <= 1) {
+            unset($keranjang[$id]);
         }
-
-        $this->session->set_userdata('keranjang', $keranjang);
-        echo json_encode(['success' => true]);
     }
+
+    $this->session->set_userdata('keranjang', $keranjang);
+
+    // ✅ Wajib ada ini
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true]);
+    exit; // ✅ Wajib exit
+}
 
     public function checkout() {
         $keranjang = $this->session->userdata('keranjang') ?? [];

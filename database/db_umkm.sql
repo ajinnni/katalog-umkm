@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3007
--- Generation Time: Apr 20, 2026 at 03:48 AM
+-- Generation Time: Apr 21, 2026 at 03:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -36,6 +36,15 @@ CREATE TABLE `detail_pesanan` (
   `qty` int(11) NOT NULL DEFAULT 1,
   `subtotal` decimal(14,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `detail_pesanan`
+--
+
+INSERT INTO `detail_pesanan` (`id`, `pesanan_id`, `produk_id`, `nama_produk`, `harga_satuan`, `qty`, `subtotal`) VALUES
+(1, 4, 3, 'Monitor 144hz BRAND', 1340000.00, 4, 5360000.00),
+(2, 5, 4, 'Kopi Hitam', 15000.00, 1, 15000.00),
+(3, 6, 5, 'Susu Putih', 10000.00, 1, 10000.00);
 
 -- --------------------------------------------------------
 
@@ -83,6 +92,15 @@ CREATE TABLE `pesanan` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `pesanan`
+--
+
+INSERT INTO `pesanan` (`id`, `kode_pesanan`, `user_id`, `umkm_id`, `nama_pemesan`, `no_wa_pemesan`, `alamat_pengiriman`, `total_harga`, `status`, `catatan`, `created_at`, `updated_at`) VALUES
+(4, 'ORD-EEC86F', 12, 3, 'Ahmad Saiful', '62818231242123', 'Di jalan situ', 5360000.00, 'selesai', NULL, '2026-04-20 06:45:02', '2026-04-21 01:02:43'),
+(5, 'ORD-8F0D4D', 12, 3, 'Ahmad Saiful', '62818231242123', 'Jalan Jalan', 15000.00, 'pending', NULL, '2026-04-21 01:09:28', '2026-04-21 01:09:28'),
+(6, 'ORD-B3B632', 12, 2, 'Ahmad Saiful', '62818231242123', 'Jalan Jalan', 10000.00, 'selesai', NULL, '2026-04-21 01:09:31', '2026-04-21 01:10:43');
+
 -- --------------------------------------------------------
 
 --
@@ -102,6 +120,15 @@ CREATE TABLE `produk` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `produk`
+--
+
+INSERT INTO `produk` (`id`, `umkm_id`, `kategori_id`, `nama`, `harga`, `stok`, `foto`, `deskripsi`, `is_active`, `created_at`, `updated_at`) VALUES
+(3, 3, 5, 'Monitor 144hz BRAND', 1340000.00, 1111, 'produk_69e5caeaa4422.jpg', 'Monitor ', 1, '2026-04-20 06:42:50', '2026-04-20 06:42:50'),
+(4, 3, 2, 'Kopi Hitam', 15000.00, 999, 'produk_69e5e51cc64c0.jpg', 'Minuman kopi hitam', 1, '2026-04-20 08:34:36', '2026-04-20 08:34:36'),
+(5, 2, 2, 'Susu Putih', 10000.00, 999, 'produk_69e5e60a5a28b.jpg', 'Susu putih', 1, '2026-04-20 08:38:34', '2026-04-20 08:38:34');
 
 -- --------------------------------------------------------
 
@@ -123,6 +150,14 @@ CREATE TABLE `umkm` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `umkm`
+--
+
+INSERT INTO `umkm` (`id`, `user_id`, `nama_toko`, `deskripsi`, `alamat`, `no_wa_toko`, `lat`, `lng`, `foto`, `is_active`, `created_at`, `updated_at`) VALUES
+(2, 6, 'Penjual Nomor 1 Store', 'Toko toko', 'Di Jalan jalan', '6283824032436', NULL, NULL, '1776667187_tokomerahkuning.jpg', 1, '2026-04-20 06:36:29', '2026-04-20 06:39:54'),
+(3, 10, 'Jeko Jika Store', 'Toko menarik', 'Di jalan sana', '6285727287160', NULL, NULL, NULL, 1, '2026-04-20 06:36:29', '2026-04-20 06:44:17');
 
 -- --------------------------------------------------------
 
@@ -151,7 +186,9 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `nama`, `password`, `no_wa`, `role`, `otp_code`, `otp_expired`, `is_verified`, `foto`, `created_at`, `updated_at`) VALUES
 (5, 'Super Admin', '$2y$12$As2F9HfMZ9/wx.5gn5a7d.VskmUdp8dvzwy/kAcFySLxRHRsyNc4C', '628123456789', 'admin', NULL, NULL, 1, NULL, '2026-04-20 01:05:18', '2026-04-20 01:07:58'),
 (6, 'Penjual Nomor 1', '$2y$12$yMOZl/bWa0SZqgZ8.IuqVeay34yOdM/qlRvR/A1zM9yUuJHclZhaC', '6283824032436', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 01:13:44', '2026-04-20 01:13:59'),
-(10, 'Jeko Jika', '$2y$12$B3TFrP.wBgMON5XQOidyt.MyQwhFQ4nbmTk9sqMr8IxnpU1AvlBGi', '6285727287160', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 01:35:45', '2026-04-20 01:36:14');
+(10, 'Jeko Jika', '$2y$12$B3TFrP.wBgMON5XQOidyt.MyQwhFQ4nbmTk9sqMr8IxnpU1AvlBGi', '6285727287160', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 01:35:45', '2026-04-20 01:36:14'),
+(11, 'Reno Si', '$2y$12$nAS9wvKAJ.GfAPw297B0dOqJ3Aqj5w3tOgRBzxiXI.Ie7Og9y96uu', '6281232112341', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 06:38:22', '2026-04-20 06:38:28'),
+(12, 'Ahmad Saiful', '$2y$12$gsbMM.We7NdDKbNGUnQPdOlTPe8WiGocdrSFR/g3oPrIsPIxw/C9a', '62818231242123', 'user', NULL, NULL, 1, NULL, '2026-04-20 06:41:44', '2026-04-20 06:41:51');
 
 --
 -- Indexes for dumped tables
@@ -210,7 +247,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `detail_pesanan`
 --
 ALTER TABLE `detail_pesanan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `kategori`
@@ -222,25 +259,25 @@ ALTER TABLE `kategori`
 -- AUTO_INCREMENT for table `pesanan`
 --
 ALTER TABLE `pesanan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `produk`
 --
 ALTER TABLE `produk`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `umkm`
 --
 ALTER TABLE `umkm`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables

@@ -15,14 +15,17 @@ class Product_model extends CI_Model {
     }
 
     public function get_by_umkm($umkm_id) {
-        return $this->db
-            ->select('produk.*, kategori.nama AS kategori_nama')
-            ->from($this->table)
-            ->join('kategori', 'kategori.id = produk.kategori_id', 'left')
-            ->where('produk.umkm_id', $umkm_id)
-            ->order_by('produk.id', 'DESC')
-            ->get()->result();
-    }
+    $query = $this->db
+        ->select('produk.*, COALESCE(kategori.nama, "-") AS kategori_nama')
+        ->from($this->table)
+        ->join('kategori', 'kategori.id = produk.kategori_id', 'left')
+        ->where('produk.umkm_id', $umkm_id)
+        ->order_by('produk.id', 'DESC')
+        ->get();
+
+    if (!$query) return [];
+    return $query->result();
+}
 
     public function get_all_active($keyword = '', $kategori_id = null) {
         $this->db

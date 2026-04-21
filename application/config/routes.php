@@ -32,7 +32,7 @@ $route['checkout']        = 'Home/checkout';
 // -------------------------------------------------------
 // ADMIN
 // -------------------------------------------------------
-$route['admin']                    = 'Admin/dashboard';
+$route['admin']                    = 'Admin/index';
 $route['admin/umkm/tambah']        = 'Admin/tambah_umkm';
 $route['admin/umkm/simpan']        = 'Admin/simpan_umkm';
 $route['admin/umkm/(:num)/edit']   = 'Admin/edit_umkm/$1';

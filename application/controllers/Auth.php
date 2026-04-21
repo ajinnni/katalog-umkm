@@ -76,6 +76,8 @@ class Auth extends MY_Controller {
             redirect('index.php/register');
         }
 
+        
+
         if (strlen($password) < 8) {
             $this->session->set_flashdata('error', 'Password minimal 8 karakter.');
             redirect('index.php/register');
@@ -97,6 +99,8 @@ class Auth extends MY_Controller {
             'password'    => password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
             'role'        => $role,
             'is_verified' => 0,
+
+            
         ]);
 
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -110,6 +114,21 @@ class Auth extends MY_Controller {
         ]);
 
         redirect('index.php/verifikasi-otp');
+
+        if ($role === 'umkm') {
+    $this->load->model('Umkm_model');
+    $this->Umkm_model->create([
+        'user_id'    => $user_id,
+        'nama_toko'  => $nama . ' Store',  // nama default, bisa diubah nanti
+        'deskripsi'  => '',
+        'alamat'     => '',
+        'no_wa_toko' => $no_wa,
+        'foto'       => NULL,
+        'is_active'  => 0,  // nonaktif dulu, admin yang aktifkan
+        'created_at' => date('Y-m-d H:i:s'),
+    ]);
+}
+
     }
 
     // -------------------------------------------------------

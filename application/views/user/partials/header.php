@@ -69,3 +69,20 @@
 
     </div>
 </nav>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn  = document.getElementById('profileBtn');
+    var wrap = document.getElementById('profileWrap');
+    if (btn && wrap) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            wrap.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            if (!wrap.contains(e.target)) {
+                wrap.classList.remove('open');
+            }
+        });
+    }
+});
+</script>

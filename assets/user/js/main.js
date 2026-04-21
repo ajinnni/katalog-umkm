@@ -131,19 +131,20 @@ document.head.appendChild(style);
 const profileBtn  = document.getElementById('profileBtn');
 const profileWrap = document.getElementById('profileWrap');
 
-profileBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    profileWrap.classList.toggle('open');
-});
+if (profileBtn && profileWrap) {
+    profileBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        profileWrap.classList.toggle('open');
+    }, true); // ← tambah true (capture phase)
 
-// Tutup dropdown kalau klik di luar
-document.addEventListener('click', (e) => {
-    if (profileWrap && !profileWrap.contains(e.target)) {
-        profileWrap.classList.remove('open');
-    }
-});
+    document.addEventListener('click', function(e) {
+        if (profileWrap && !profileWrap.contains(e.target)) {
+            profileWrap.classList.remove('open');
+        }
+    });
 
-// Tutup kalau tekan Escape
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') profileWrap?.classList.remove('open');
-});
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') profileWrap.classList.remove('open');
+    });
+}

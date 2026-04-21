@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Admin extends MY_Controller {
+class Admin extends Auth_Controller {  // ✅ fix: ganti MY_Controller → Auth_Controller
 
     public function __construct() {
         parent::__construct();
@@ -9,62 +9,55 @@ class Admin extends MY_Controller {
         $this->load->model(['User_model', 'Umkm_model']);
         $this->load->library(['form_validation', 'upload']);
 
-        // optional security guard
+        // ✅ Guard sudah ada di Auth_Controller, tapi double check role
         if ($this->session->userdata('role') !== 'admin') {
             redirect('login');
+            exit;
         }
     }
 
+    // ✅ fix: hapus method index() yang lama, pakai yang ini aja
     public function index() {
-    $data['title']         = 'Dashboard Admin';
-    $data['user']          = [
-        'nama'  => $this->session->userdata('nama'),
-        'no_wa' => $this->session->userdata('no_wa'),
-    ];
-    $data['total_user']    = $this->db->where('role', 'user')->count_all_results('users');
-    $data['total_umkm']    = $this->db->where('role', 'umkm')->count_all_results('users');
-    $data['total_admin']   = $this->db->where('role', 'admin')->count_all_results('users');
-    $data['total_produk']  = $this->db->count_all('produk');
-    $data['total_pesanan'] = $this->db->count_all('pesanan');
-    $this->render('admin/dashboard', $data);
-}
-
-    public function dashboard() {
-
         $data['title'] = 'Dashboard Admin';
+        $data['user']  = [
+            'nama'  => $this->session->userdata('nama'),
+            'no_wa' => $this->session->userdata('no_wa'),
+        ];
 
-        $data['user'] = $this->User_model->get(
-            $this->session->userdata('user_id')
-        );
-
+        // ✅ fix: pakai User_model biar konsisten, hindari query langsung
         $data['total_user']  = $this->User_model->count_by_role('user');
         $data['total_umkm']  = $this->User_model->count_by_role('umkm');
         $data['total_admin'] = $this->User_model->count_by_role('admin');
 
+        // ✅ Cek dulu tabelnya ada, kalau belum ada set 0
+        $data['total_produk']  = $this->db->table_exists('produk')
+            ? $this->db->count_all('produk')
+            : 0;
+        $data['total_pesanan'] = $this->db->table_exists('pesanan')
+            ? $this->db->count_all('pesanan')
+            : 0;
+
         $this->render('admin/dashboard', $data);
     }
+
+    // ✅ fix: hapus method dashboard() karena duplikat dengan index()
 
     // =========================
     // UMKM MANAGEMENT
     // =========================
     public function kelola_umkm() {
-
-        $data['title'] = 'Kelola UMKM';
+        $data['title']     = 'Kelola UMKM';
         $data['list_umkm'] = $this->Umkm_model->get_all();
-
         $this->render('admin/umkm/index', $data);
     }
 
     public function tambah_umkm() {
-
-        $data['title'] = 'Tambah UMKM';
+        $data['title']  = 'Tambah UMKM';
         $data['owners'] = $this->Umkm_model->get_available_owners();
-
         $this->render('admin/umkm/form', $data);
     }
 
     public function simpan_umkm() {
-
         $this->form_validation->set_rules('nama_toko', 'Nama Toko', 'required|trim');
         $this->form_validation->set_rules('user_id', 'Pemilik', 'required|integer');
 
@@ -75,15 +68,10 @@ class Admin extends MY_Controller {
         }
 
         $foto = NULL;
-
         if (!empty($_FILES['foto']['name'])) {
             $foto = $this->_upload_foto();
-
             if (!$foto) {
-                $this->session->set_flashdata(
-                    'error',
-                    $this->upload->display_errors()
-                );
+                $this->session->set_flashdata('error', $this->upload->display_errors());
                 redirect('admin/umkm');
                 return;
             }
@@ -104,22 +92,17 @@ class Admin extends MY_Controller {
     }
 
     public function edit_umkm($id) {
-
         $umkm = $this->Umkm_model->get($id);
-
         if (!$umkm) show_404();
 
-        $data['title'] = 'Edit UMKM';
-        $data['umkm'] = $umkm;
+        $data['title']  = 'Edit UMKM';
+        $data['umkm']   = $umkm;
         $data['owners'] = $this->Umkm_model->get_available_owners();
-
         $this->render('admin/umkm/form', $data);
     }
 
     public function update_umkm($id) {
-
         $umkm = $this->Umkm_model->get($id);
-
         if (!$umkm) show_404();
 
         $this->form_validation->set_rules('nama_toko', 'Nama Toko', 'required|trim');
@@ -138,28 +121,22 @@ class Admin extends MY_Controller {
         ];
 
         if (!empty($_FILES['foto']['name'])) {
-
             $foto = $this->_upload_foto();
-
             if ($foto) {
                 if ($umkm->foto && file_exists(FCPATH . 'uploads/umkm/' . $umkm->foto)) {
                     unlink(FCPATH . 'uploads/umkm/' . $umkm->foto);
                 }
-
                 $update['foto'] = $foto;
             }
         }
 
         $this->Umkm_model->update($id, $update);
-
         $this->session->set_flashdata('success', 'UMKM berhasil diperbarui.');
         redirect('admin/umkm');
     }
 
     public function hapus_umkm($id) {
-
         $umkm = $this->Umkm_model->get($id);
-
         if (!$umkm) show_404();
 
         if ($umkm->foto && file_exists(FCPATH . 'uploads/umkm/' . $umkm->foto)) {
@@ -167,15 +144,12 @@ class Admin extends MY_Controller {
         }
 
         $this->Umkm_model->delete($id);
-
         $this->session->set_flashdata('success', 'UMKM berhasil dihapus.');
         redirect('admin/umkm');
     }
 
     public function toggle_umkm($id) {
-
         $this->Umkm_model->toggle_active($id);
-
         $this->session->set_flashdata('success', 'Status UMKM diperbarui.');
         redirect('admin/umkm');
     }
@@ -184,22 +158,17 @@ class Admin extends MY_Controller {
     // USERS MANAGEMENT
     // =========================
     public function kelola_users() {
-
         $data['title'] = 'Data Pengguna';
         $data['users'] = $this->User_model->get_all();
-
         $this->render('admin/users/index', $data);
     }
 
     public function tambah_user() {
-
         $data['title'] = 'Tambah Pengguna';
-
         $this->render('admin/users/form', $data);
     }
 
     public function simpan_user() {
-
         $this->form_validation->set_rules('nama', 'Nama', 'required|trim');
         $this->form_validation->set_rules('no_wa', 'No WA', 'required|trim');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[admin,umkm,user]');
@@ -230,7 +199,6 @@ class Admin extends MY_Controller {
     }
 
     public function hapus_user($id) {
-
         if ($id == $this->session->userdata('user_id')) {
             $this->session->set_flashdata('error', 'Tidak bisa hapus akun sendiri.');
             redirect('admin/users');
@@ -238,7 +206,6 @@ class Admin extends MY_Controller {
         }
 
         $this->User_model->delete($id);
-
         $this->session->set_flashdata('success', 'User berhasil dihapus.');
         redirect('admin/users');
     }
@@ -247,7 +214,6 @@ class Admin extends MY_Controller {
     // PRIVATE UPLOAD
     // =========================
     private function _upload_foto() {
-
         $config['upload_path']   = './uploads/umkm/';
         $config['allowed_types'] = 'jpg|jpeg|png';
         $config['max_size']      = 2048;
