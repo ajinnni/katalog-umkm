@@ -25,16 +25,16 @@
         </li>
         <hr class="sidebar-divider">
         <div class="sidebar-heading">Kelola</div>
-       <li class="nav-item active">
-    <a class="nav-link" href="<?= base_url('index.php/umkm/produk') ?>">
-        <i class="fas fa-fw fa-box"></i><span>Kelola Produk</span>
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="<?= base_url('index.php/umkm/laporan') ?>">
-        <i class="fas fa-fw fa-chart-bar"></i><span>Laporan Penjualan</span>
-    </a>
-</li>
+        <li class="nav-item active">
+            <a class="nav-link" href="<?= base_url('index.php/umkm/produk') ?>">
+                <i class="fas fa-fw fa-box"></i><span>Kelola Produk</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="<?= base_url('index.php/umkm/laporan') ?>">
+                <i class="fas fa-fw fa-chart-bar"></i><span>Laporan Penjualan</span>
+            </a>
+        </li>
         <hr class="sidebar-divider d-none d-md-block">
         <div class="text-center d-none d-md-inline">
             <button class="rounded-circle border-0" id="sidebarToggle"></button>
@@ -51,10 +51,18 @@
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                <?= isset($user->nama) ? htmlspecialchars($user->nama) : 'UMKM' ?>
+                            </span>
                             <img class="img-profile rounded-circle" style="width:32px;height:32px;object-fit:cover"
                                  src="<?= base_url('assets/img/undraw_profile.svg') ?>">
                         </a>
                         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                            <div class="dropdown-item">
+                                <i class="fas fa-phone fa-sm fa-fw mr-2 text-gray-400"></i>
+                                <?= isset($user->no_wa) ? htmlspecialchars($user->no_wa) : '-' ?>
+                            </div>
+                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="<?= base_url('index.php/logout') ?>"
                                onclick="return confirm('Yakin mau logout?')">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i> Logout
@@ -163,9 +171,7 @@
 <script>
 $(document).ready(function() {
     $('.dataTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
-        }
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' }
     });
 });
 </script>

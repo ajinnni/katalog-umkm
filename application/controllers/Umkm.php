@@ -11,15 +11,21 @@ class Umkm extends MY_Controller {
         $this->load->model(['User_model', 'Umkm_model', 'Product_model', 'Kategori_model', 'Pesanan_model']);
     }
 
-    public function dashboard() {
+    // Helper ambil $user & $umkm sekaligus
+    private function _get_user_umkm() {
         $user_id = $this->session->userdata('user_id');
         $user    = $this->User_model->get($user_id);
         if (!$user) {
             $this->session->set_flashdata('error', 'Data pengguna tidak ditemukan.');
             redirect('index.php/login');
         }
+        $umkm = $this->Umkm_model->get_by_user($user_id);
+        return [$user, $umkm];
+    }
 
-        $umkm     = $this->Umkm_model->get_by_user($user_id);
+    public function dashboard() {
+        list($user, $umkm) = $this->_get_user_umkm();
+
         $products = $umkm ? $this->Product_model->get_by_umkm($umkm->id) : [];
 
         $total_pesanan = 0;
@@ -44,8 +50,8 @@ class Umkm extends MY_Controller {
     }
 
     public function laporan() {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
+
         if (!$umkm) {
             $this->session->set_flashdata('error', 'UMKM tidak ditemukan.');
             redirect('index.php/umkm/dashboard');
@@ -59,6 +65,7 @@ class Umkm extends MY_Controller {
 
         $this->load->view('umkm/laporan', [
             'title'         => 'Laporan Penjualan',
+            'user'          => $user,
             'umkm'          => $umkm,
             'pesanan'       => $pesanan,
             'total_pesanan' => $total_pesanan,
@@ -68,16 +75,9 @@ class Umkm extends MY_Controller {
         ]);
     }
 
-    public function update_status($id) {
-        $status = $this->input->post('status');
-        $this->Pesanan_model->update_status($id, $status);
-        $this->session->set_flashdata('success', 'Status pesanan diupdate.');
-        redirect('index.php/umkm/laporan');
-    }
-
     public function kelola_produk() {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
+
         if (!$umkm) {
             $this->session->set_flashdata('error', 'UMKM tidak ditemukan.');
             redirect('index.php/umkm/dashboard');
@@ -85,6 +85,7 @@ class Umkm extends MY_Controller {
 
         $this->load->view('umkm/produk/index', [
             'title'    => 'Kelola Produk',
+            'user'     => $user,
             'umkm'     => $umkm,
             'products' => $this->Product_model->get_by_umkm($umkm->id),
             'kategori' => $this->Kategori_model->get_all(),
@@ -92,19 +93,18 @@ class Umkm extends MY_Controller {
     }
 
     public function tambah_produk() {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
 
         $this->load->view('umkm/produk/form', [
             'title'    => 'Tambah Produk',
+            'user'     => $user,
             'umkm'     => $umkm,
             'kategori' => $this->Kategori_model->get_all(),
         ]);
     }
 
     public function simpan_produk() {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
 
         $this->form_validation->set_rules('nama',        'Nama Produk', 'required|trim');
         $this->form_validation->set_rules('harga',       'Harga',       'required|numeric');
@@ -152,8 +152,8 @@ class Umkm extends MY_Controller {
     }
 
     public function edit_produk($id) {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
+
         $product = $this->Product_model->get($id);
 
         if (!$product || $product->umkm_id != $umkm->id) {
@@ -163,6 +163,7 @@ class Umkm extends MY_Controller {
 
         $this->load->view('umkm/produk/form', [
             'title'    => 'Edit Produk',
+            'user'     => $user,
             'umkm'     => $umkm,
             'product'  => $product,
             'kategori' => $this->Kategori_model->get_all(),
@@ -170,8 +171,8 @@ class Umkm extends MY_Controller {
     }
 
     public function update_produk($id) {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
+
         $product = $this->Product_model->get($id);
 
         if (!$product || $product->umkm_id != $umkm->id) {
@@ -226,8 +227,8 @@ class Umkm extends MY_Controller {
     }
 
     public function hapus_produk($id) {
-        $user_id = $this->session->userdata('user_id');
-        $umkm    = $this->Umkm_model->get_by_user($user_id);
+        list($user, $umkm) = $this->_get_user_umkm();
+
         $product = $this->Product_model->get($id);
 
         if ($product && $product->umkm_id == $umkm->id) {
@@ -241,18 +242,16 @@ class Umkm extends MY_Controller {
         redirect('index.php/umkm/dashboard');
     }
 
-    public function update_status_pesanan($id)
-{
-    $status = $this->input->post('status');
+    public function update_status_pesanan($id) {
+        $status = $this->input->post('status');
 
-    if (!$status) {
-        $this->session->set_flashdata('error', 'Status tidak valid.');
+        if (!$status) {
+            $this->session->set_flashdata('error', 'Status tidak valid.');
+            redirect('index.php/umkm/laporan');
+        }
+
+        $this->Pesanan_model->update_status($id, $status);
+        $this->session->set_flashdata('success', 'Status pesanan diupdate.');
         redirect('index.php/umkm/laporan');
     }
-
-    $this->Pesanan_model->update_status($id, $status);
-
-    $this->session->set_flashdata('success', 'Status pesanan diupdate.');
-    redirect('index.php/umkm/laporan');
-}
 }

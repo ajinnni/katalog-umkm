@@ -50,10 +50,18 @@
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item dropdown no-arrow">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                <?= isset($user->nama) ? htmlspecialchars($user->nama) : 'UMKM' ?>
+                            </span>
                             <img class="img-profile rounded-circle" style="width:32px;height:32px;object-fit:cover"
                                  src="<?= base_url('assets/img/undraw_profile.svg') ?>">
                         </a>
                         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                            <div class="dropdown-item">
+                                <i class="fas fa-phone fa-sm fa-fw mr-2 text-gray-400"></i>
+                                <?= isset($user->no_wa) ? htmlspecialchars($user->no_wa) : '-' ?>
+                            </div>
+                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="<?= base_url('index.php/logout') ?>"
                                onclick="return confirm('Yakin mau logout?')">
                                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i> Logout
@@ -75,7 +83,6 @@
                     </div>
                 <?php endif; ?>
 
-                <!-- Kartu Ringkasan -->
                 <div class="row mb-4">
                     <div class="col-xl-3 col-md-6 mb-4">
                         <div class="card border-left-primary shadow h-100 py-2">
@@ -131,7 +138,6 @@
                     </div>
                 </div>
 
-                <!-- Tabel Pesanan -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">Daftar Pesanan Masuk</h6>
