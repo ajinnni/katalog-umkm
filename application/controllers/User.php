@@ -5,7 +5,7 @@ class User extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        $this->load->model(['Product_model', 'Kategori_model', 'Umkm_model', 'Pesanan_model']);
+        $this->load->model(['Product_model', 'Kategori_model', 'Umkm_model', 'Pesanan_model', 'User_model']);
         $this->load->helper(['url', 'form']);
         $this->load->library('session');
 
@@ -32,38 +32,53 @@ class User extends CI_Controller {
         $this->load->view('user/partials/footer');
     }
 
-    public function tambah_keranjang() {
-    $id_produk = $this->input->post('id_produk');
-    $qty       = (int) $this->input->post('qty') ?: 1;
+    // -------------------------------------------------------
+    // RIWAYAT PEMBELIAN
+    // -------------------------------------------------------
+    public function riwayat() {
+        $user_id = $this->session->userdata('user_id');
+        $pesanan = $this->Pesanan_model->get_by_user_with_details($user_id);
 
-    $produk = $this->Product_model->get($id_produk);
-    if (!$produk) show_error('Produk tidak ditemukan', 404);
-
-    $keranjang = $this->session->userdata('keranjang') ?? [];
-
-    if (isset($keranjang[$id_produk])) {
-        $keranjang[$id_produk]['qty'] += $qty;
-    } else {
-        $keranjang[$id_produk] = [
-            'id'      => $produk->id,
-            'nama'    => $produk->nama,
-            'harga'   => $produk->harga,
-            'foto'    => $produk->foto,
-            'umkm_id' => $produk->umkm_id,
-            'qty'     => $qty,
-        ];
+        $this->load->view('user/partials/header', ['title' => 'Riwayat Pembelian']);
+        $this->load->view('user/riwayat', ['pesanan' => $pesanan]);
+        $this->load->view('user/partials/footer');
     }
 
-    $this->session->set_userdata('keranjang', $keranjang);
+    // -------------------------------------------------------
+    // KERANJANG
+    // -------------------------------------------------------
+    public function tambah_keranjang() {
+        $id_produk = $this->input->post('id_produk');
+        $qty       = (int) $this->input->post('qty') ?: 1;
 
-    header('Content-Type: application/json');
-    echo json_encode([
-        'status'    => 'ok',
-        'total'     => count($keranjang),
-        'csrf_hash' => $this->security->get_csrf_hash(),
-    ]);
-    exit;
-}
+        $produk = $this->Product_model->get($id_produk);
+        if (!$produk) show_error('Produk tidak ditemukan', 404);
+
+        $keranjang = $this->session->userdata('keranjang') ?? [];
+
+        if (isset($keranjang[$id_produk])) {
+            $keranjang[$id_produk]['qty'] += $qty;
+        } else {
+            $keranjang[$id_produk] = [
+                'id'      => $produk->id,
+                'nama'    => $produk->nama,
+                'harga'   => $produk->harga,
+                'foto'    => $produk->foto,
+                'umkm_id' => $produk->umkm_id,
+                'qty'     => $qty,
+            ];
+        }
+
+        $this->session->set_userdata('keranjang', $keranjang);
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status'    => 'ok',
+            'total'     => count($keranjang),
+            'csrf_hash' => $this->security->get_csrf_hash(),
+        ]);
+        exit;
+    }
 
     public function keranjang() {
         $keranjang   = $this->session->userdata('keranjang') ?? [];
@@ -89,29 +104,31 @@ class User extends CI_Controller {
     }
 
     public function update_keranjang() {
-    $id   = $this->input->post('id');
-    $aksi = $this->input->post('aksi');
+        $id   = $this->input->post('id');
+        $aksi = $this->input->post('aksi');
 
-    $keranjang = $this->session->userdata('keranjang') ?? [];
+        $keranjang = $this->session->userdata('keranjang') ?? [];
 
-    if (isset($keranjang[$id])) {
-        if ($aksi === 'tambah') {
-            $keranjang[$id]['qty']++;
-        } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] > 1) {
-            $keranjang[$id]['qty']--;
-        } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] <= 1) {
-            unset($keranjang[$id]);
+        if (isset($keranjang[$id])) {
+            if ($aksi === 'tambah') {
+                $keranjang[$id]['qty']++;
+            } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] > 1) {
+                $keranjang[$id]['qty']--;
+            } elseif ($aksi === 'kurang' && $keranjang[$id]['qty'] <= 1) {
+                unset($keranjang[$id]);
+            }
         }
+
+        $this->session->set_userdata('keranjang', $keranjang);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true]);
+        exit;
     }
 
-    $this->session->set_userdata('keranjang', $keranjang);
-
-    // ✅ Wajib ada ini
-    header('Content-Type: application/json');
-    echo json_encode(['success' => true]);
-    exit; // ✅ Wajib exit
-}
-
+    // -------------------------------------------------------
+    // CHECKOUT
+    // -------------------------------------------------------
     public function checkout() {
         $keranjang = $this->session->userdata('keranjang') ?? [];
         if (empty($keranjang)) {
@@ -162,19 +179,18 @@ class User extends CI_Controller {
                     'qty'          => $item['qty'],
                     'subtotal'     => $item['harga'] * $item['qty'],
                 ]);
-
-                
             }
-                    $this->_kirim_wa_bot([
-            'kode_pesanan'  => $kode,
-            'nama_pemesan'  => $nama,
-            'no_wa_pemesan' => $no_wa,
-            'alamat'        => $alamat,
-            'grand_total'   => $total,
-            'no_wa_umkm'    => $no_wa_toko,
-            'nama_toko'     => $umkm->nama_toko,
-            'items'         => array_values($items),
-        ]);
+
+            $this->_kirim_wa_bot([
+                'kode_pesanan'  => $kode,
+                'nama_pemesan'  => $nama,
+                'no_wa_pemesan' => $no_wa,
+                'alamat'        => $alamat,
+                'grand_total'   => $total,
+                'no_wa_umkm'    => $no_wa_toko,
+                'nama_toko'     => $umkm->nama_toko,
+                'items'         => array_values($items),
+            ]);
 
             $pesan = "Halo Kak, saya ingin memesan:\n\n";
             foreach ($items as $item) {
@@ -193,7 +209,6 @@ class User extends CI_Controller {
                 'link' => 'https://wa.me/' . $no_toko . '?text=' . urlencode($pesan),
                 'kode' => $kode,
             ];
-            
         }
 
         $this->session->unset_userdata('keranjang');
@@ -207,18 +222,21 @@ class User extends CI_Controller {
         $this->session->sess_destroy();
         redirect('index.php/login');
     }
-        private function _kirim_wa_bot($data) {
-            $url = 'http://localhost:3000/kirim-pesanan';
-            $ch  = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_POST           => TRUE,
-                CURLOPT_RETURNTRANSFER => TRUE,
-                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-                CURLOPT_POSTFIELDS     => json_encode($data),
-                CURLOPT_TIMEOUT        => 5,
-            ]);
-            curl_exec($ch);
-            curl_close($ch);
-        }
-  
+
+    // -------------------------------------------------------
+    // PRIVATE HELPERS
+    // -------------------------------------------------------
+    private function _kirim_wa_bot($data) {
+        $url = 'http://localhost:3000/kirim-pesanan';
+        $ch  = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS     => json_encode($data),
+            CURLOPT_TIMEOUT        => 5,
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+    }
 }

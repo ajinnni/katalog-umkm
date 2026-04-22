@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Umkm extends MY_Controller {
 
+    const FONNTE_TOKEN = 'aFUCu1xfixcmZjDD3XS6'; // token Fonnte
+
     public function __construct() {
         parent::__construct();
         if (!$this->session->userdata('user_id') || $this->session->userdata('role') !== 'umkm') {
@@ -153,7 +155,6 @@ class Umkm extends MY_Controller {
 
     public function edit_produk($id) {
         list($user, $umkm) = $this->_get_user_umkm();
-
         $product = $this->Product_model->get($id);
 
         if (!$product || $product->umkm_id != $umkm->id) {
@@ -172,7 +173,6 @@ class Umkm extends MY_Controller {
 
     public function update_produk($id) {
         list($user, $umkm) = $this->_get_user_umkm();
-
         $product = $this->Product_model->get($id);
 
         if (!$product || $product->umkm_id != $umkm->id) {
@@ -228,7 +228,6 @@ class Umkm extends MY_Controller {
 
     public function hapus_produk($id) {
         list($user, $umkm) = $this->_get_user_umkm();
-
         $product = $this->Product_model->get($id);
 
         if ($product && $product->umkm_id == $umkm->id) {
@@ -242,6 +241,9 @@ class Umkm extends MY_Controller {
         redirect('index.php/umkm/dashboard');
     }
 
+    // -------------------------------------------------------
+    // UPDATE STATUS PESANAN + KIRIM WA OTOMATIS
+    // -------------------------------------------------------
     public function update_status_pesanan($id) {
         $status = $this->input->post('status');
 
@@ -250,8 +252,137 @@ class Umkm extends MY_Controller {
             redirect('index.php/umkm/laporan');
         }
 
+        // Ambil data pesanan sebelum diupdate
+        $pesanan = $this->Pesanan_model->get($id);
+
+        // Update status
         $this->Pesanan_model->update_status($id, $status);
-        $this->session->set_flashdata('success', 'Status pesanan diupdate.');
+
+        // Kirim WA notifikasi ke pembeli
+        if ($pesanan && !empty($pesanan->no_wa_pemesan)) {
+            $this->_kirim_notif_status($pesanan, $status);
+        }
+
+        $this->session->set_flashdata('success', 'Status pesanan diupdate dan notifikasi WA terkirim.');
         redirect('index.php/umkm/laporan');
+    }
+
+    // -------------------------------------------------------
+    // PRIVATE HELPERS
+    // -------------------------------------------------------
+
+    private function _kirim_notif_status($pesanan, $status) {
+        $status_pesan = [
+            'dikonfirmasi' => "✅ *Pesanan Dikonfirmasi!*\n\nHalo {$pesanan->nama_pemesan}, pesanan kamu dengan kode *{$pesanan->kode_pesanan}* sudah dikonfirmasi oleh toko.\n\nSilakan tunggu ya, kami sedang memproses pesananmu! 😊",
+            'diproses'     => "⚙️ *Pesanan Sedang Diproses!*\n\nHalo {$pesanan->nama_pemesan}, pesanan *{$pesanan->kode_pesanan}* sedang kami siapkan.\n\nTidak lama lagi akan segera dikirim! 📦",
+            'dikirim'      => "🚚 *Pesanan Sedang Dikirim!*\n\nHalo {$pesanan->nama_pemesan}, pesanan *{$pesanan->kode_pesanan}* sudah dalam perjalanan ke alamatmu.\n\nAlamat: {$pesanan->alamat_pengiriman}\n\nMohon tunggu kedatangannya ya! 😊",
+            'selesai'      => "🎉 *Pesanan Selesai!*\n\nHalo {$pesanan->nama_pemesan}, pesanan *{$pesanan->kode_pesanan}* telah selesai.\n\nTerima kasih sudah berbelanja! Jangan lupa beli lagi ya 🛍️",
+            'dibatalkan'   => "❌ *Pesanan Dibatalkan*\n\nHalo {$pesanan->nama_pemesan}, pesanan *{$pesanan->kode_pesanan}* telah dibatalkan.\n\nJika ada pertanyaan, silakan hubungi toko kami.",
+        ];
+
+        // Hanya kirim untuk status yang perlu notifikasi
+        if (!isset($status_pesan[$status])) return;
+
+        $no_wa = preg_replace('/\D/', '', $pesanan->no_wa_pemesan);
+        if (substr($no_wa, 0, 1) === '0') $no_wa = '62' . substr($no_wa, 1);
+        if (substr($no_wa, 0, 1) === '8') $no_wa = '62' . $no_wa;
+
+        $ch = curl_init('https://api.fonnte.com/send');
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_HTTPHEADER     => ['Authorization: ' . self::FONNTE_TOKEN],
+            CURLOPT_POSTFIELDS     => [
+                'target'  => $no_wa,
+                'message' => $status_pesan[$status],
+            ],
+        ]);
+        $result = curl_exec($ch);
+        $error  = curl_error($ch);
+        unset($ch);
+
+        log_message('debug', 'Notif WA status [' . $status . '] ke ' . $no_wa . ': ' . $result);
+        if ($error) log_message('error', 'Notif WA error: ' . $error);
+    }
+
+    public function daftar_toko() {
+        list($user, $umkm) = $this->_get_user_umkm();
+ 
+        // Kalau sudah punya toko, redirect ke dashboard
+        if ($umkm) {
+            $this->session->set_flashdata('info', 'Kamu sudah memiliki toko.');
+            redirect('index.php/umkm/dashboard');
+        }
+ 
+        $this->load->view('umkm/daftar_toko', [
+            'title' => 'Daftar Toko',
+            'user'  => $user,
+        ]);
+    }
+ 
+    public function simpan_toko() {
+        list($user, $umkm) = $this->_get_user_umkm();
+ 
+        // Cek sudah punya toko
+        if ($umkm) {
+            redirect('index.php/umkm/dashboard');
+        }
+ 
+        $nama_toko  = $this->input->post('nama_toko',  TRUE);
+        $deskripsi  = $this->input->post('deskripsi',  TRUE);
+        $alamat     = $this->input->post('alamat',     TRUE);
+        $no_wa_toko = $this->input->post('no_wa_toko', TRUE);
+ 
+        // Validasi field wajib
+        if (!$nama_toko || !$deskripsi || !$alamat || !$no_wa_toko) {
+            $this->session->set_flashdata('error', 'Semua field wajib diisi.');
+            redirect('index.php/umkm/daftar-toko');
+        }
+ 
+        // Validasi foto wajib
+        if (empty($_FILES['foto']['name'])) {
+            $this->session->set_flashdata('error', 'Foto toko wajib diupload.');
+            redirect('index.php/umkm/daftar-toko');
+        }
+ 
+        // Upload foto
+        $upload_path = FCPATH . 'uploads/toko/';
+        if (!is_dir($upload_path)) mkdir($upload_path, 0755, TRUE);
+ 
+        $this->load->library('upload');
+        $this->upload->initialize([
+            'upload_path'   => $upload_path,
+            'allowed_types' => 'jpg|jpeg|png',
+            'max_size'      => 2048,
+            'file_name'     => uniqid('toko_'),
+        ]);
+ 
+        if (!$this->upload->do_upload('foto')) {
+            $this->session->set_flashdata('error', $this->upload->display_errors('', ''));
+            redirect('index.php/umkm/daftar-toko');
+        }
+ 
+        $foto = $this->upload->data('file_name');
+ 
+        // Format no WA
+        $no_wa_toko = preg_replace('/\D/', '', $no_wa_toko);
+        if (substr($no_wa_toko, 0, 2) === '08') $no_wa_toko = '628' . substr($no_wa_toko, 2);
+        if (substr($no_wa_toko, 0, 1) === '8')  $no_wa_toko = '62'  . $no_wa_toko;
+ 
+        // Simpan toko — is_active = 0 (menunggu aktivasi admin)
+        $this->Umkm_model->create([
+            'user_id'    => $user->id,
+            'nama_toko'  => $nama_toko,
+            'deskripsi'  => $deskripsi,
+            'alamat'     => $alamat,
+            'no_wa_toko' => $no_wa_toko,
+            'foto'       => $foto,
+            'is_active'  => 0,
+        ]);
+ 
+        $this->session->set_flashdata('success', 'Toko berhasil didaftarkan! Tunggu aktivasi dari admin ya.');
+        redirect('index.php/umkm/dashboard');
     }
 }

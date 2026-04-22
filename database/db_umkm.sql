@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3007
--- Generation Time: Apr 21, 2026 at 03:30 AM
+-- Generation Time: Apr 22, 2026 at 11:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,7 +44,9 @@ CREATE TABLE `detail_pesanan` (
 INSERT INTO `detail_pesanan` (`id`, `pesanan_id`, `produk_id`, `nama_produk`, `harga_satuan`, `qty`, `subtotal`) VALUES
 (1, 4, 3, 'Monitor 144hz BRAND', 1340000.00, 4, 5360000.00),
 (2, 5, 4, 'Kopi Hitam', 15000.00, 1, 15000.00),
-(3, 6, 5, 'Susu Putih', 10000.00, 1, 10000.00);
+(3, 6, 5, 'Susu Putih', 10000.00, 1, 10000.00),
+(4, 7, 4, 'Kopi Hitam', 15000.00, 1, 15000.00),
+(5, 8, 5, 'Susu Putih', 10000.00, 1, 10000.00);
 
 -- --------------------------------------------------------
 
@@ -85,6 +87,13 @@ CREATE TABLE `pesanan` (
   `nama_pemesan` varchar(100) NOT NULL,
   `no_wa_pemesan` varchar(20) NOT NULL,
   `alamat_pengiriman` text NOT NULL,
+  `metode_pengiriman` enum('pickup','delivery') NOT NULL DEFAULT 'delivery',
+  `metode_kirim_umkm` enum('jasa','sendiri') DEFAULT NULL,
+  `jasa_kurir` varchar(50) DEFAULT NULL,
+  `no_resi` varchar(100) DEFAULT NULL,
+  `nama_pengantar` varchar(100) DEFAULT NULL,
+  `no_hp_pengantar` varchar(20) DEFAULT NULL,
+  `estimasi_pengiriman` varchar(100) DEFAULT NULL,
   `total_harga` decimal(14,2) NOT NULL DEFAULT 0.00,
   `status` enum('pending','dikonfirmasi','diproses','dikirim','selesai','dibatalkan') NOT NULL DEFAULT 'pending',
   `catatan` text DEFAULT NULL,
@@ -96,10 +105,13 @@ CREATE TABLE `pesanan` (
 -- Dumping data for table `pesanan`
 --
 
-INSERT INTO `pesanan` (`id`, `kode_pesanan`, `user_id`, `umkm_id`, `nama_pemesan`, `no_wa_pemesan`, `alamat_pengiriman`, `total_harga`, `status`, `catatan`, `created_at`, `updated_at`) VALUES
-(4, 'ORD-EEC86F', 12, 3, 'Ahmad Saiful', '62818231242123', 'Di jalan situ', 5360000.00, 'selesai', NULL, '2026-04-20 06:45:02', '2026-04-21 01:02:43'),
-(5, 'ORD-8F0D4D', 12, 3, 'Ahmad Saiful', '62818231242123', 'Jalan Jalan', 15000.00, 'pending', NULL, '2026-04-21 01:09:28', '2026-04-21 01:09:28'),
-(6, 'ORD-B3B632', 12, 2, 'Ahmad Saiful', '62818231242123', 'Jalan Jalan', 10000.00, 'selesai', NULL, '2026-04-21 01:09:31', '2026-04-21 01:10:43');
+INSERT INTO `pesanan` (`id`, `kode_pesanan`, `user_id`, `umkm_id`, `nama_pemesan`, `no_wa_pemesan`, `alamat_pengiriman`, `metode_pengiriman`, `metode_kirim_umkm`, `jasa_kurir`, `no_resi`, `nama_pengantar`, `no_hp_pengantar`, `estimasi_pengiriman`, `total_harga`, `status`, `catatan`, `created_at`, `updated_at`) VALUES
+(4, 'ORD-EEC86F', 12, 3, 'Ahmad Saiful', '62818231242123', 'Di jalan situ', 'delivery', NULL, NULL, NULL, NULL, NULL, NULL, 5360000.00, 'selesai', NULL, '2026-04-20 06:45:02', '2026-04-21 01:02:43'),
+(5, 'ORD-8F0D4D', 12, 3, 'Ahmad Saiful', '62818231242123', 'Jalan Jalan', 'delivery', NULL, NULL, NULL, NULL, NULL, NULL, 15000.00, 'pending', NULL, '2026-04-21 01:09:28', '2026-04-21 01:09:28'),
+(6, 'ORD-B3B632', 12, 2, 'Ahmad Saiful', '62818231242123', 'Jalan Jalan', 'delivery', NULL, NULL, NULL, NULL, NULL, NULL, 10000.00, 'selesai', NULL, '2026-04-21 01:09:31', '2026-04-21 01:10:43'),
+(7, 'ORD-055CB1', 13, 3, 'Pembeli 1', '6285727285761', 'jalan jalan', 'delivery', NULL, NULL, NULL, NULL, NULL, NULL, 15000.00, 'dikirim', NULL, '2026-04-22 07:31:44', '2026-04-22 07:33:18'),
+(8, 'ORD-943E67', 13, 2, 'Pembeli 1', '6285727285761', 'Jalan Jalan', 'delivery', NULL, NULL, NULL, NULL, NULL, NULL, 10000.00, 'pending', NULL, '2026-04-22 08:32:25', '2026-04-22 08:32:25'),
+(9, 'ORD-8A8192-20260422', 13, 3, 'Pembeli 1', '6285727285761', 'Jalan Jalan', 'delivery', NULL, NULL, NULL, NULL, NULL, NULL, 15000.00, 'selesai', 'kemasan rapi', '2026-04-22 08:45:28', '2026-04-22 09:07:31');
 
 -- --------------------------------------------------------
 
@@ -127,7 +139,7 @@ CREATE TABLE `produk` (
 
 INSERT INTO `produk` (`id`, `umkm_id`, `kategori_id`, `nama`, `harga`, `stok`, `foto`, `deskripsi`, `is_active`, `created_at`, `updated_at`) VALUES
 (3, 3, 5, 'Monitor 144hz BRAND', 1340000.00, 1111, 'produk_69e5caeaa4422.jpg', 'Monitor ', 1, '2026-04-20 06:42:50', '2026-04-20 06:42:50'),
-(4, 3, 2, 'Kopi Hitam', 15000.00, 999, 'produk_69e5e51cc64c0.jpg', 'Minuman kopi hitam', 1, '2026-04-20 08:34:36', '2026-04-20 08:34:36'),
+(4, 3, 2, 'Kopi Hitam', 15000.00, 998, 'produk_69e5e51cc64c0.jpg', 'Minuman kopi hitam', 1, '2026-04-20 08:34:36', '2026-04-22 08:45:28'),
 (5, 2, 2, 'Susu Putih', 10000.00, 999, 'produk_69e5e60a5a28b.jpg', 'Susu putih', 1, '2026-04-20 08:38:34', '2026-04-20 08:38:34');
 
 -- --------------------------------------------------------
@@ -157,7 +169,8 @@ CREATE TABLE `umkm` (
 
 INSERT INTO `umkm` (`id`, `user_id`, `nama_toko`, `deskripsi`, `alamat`, `no_wa_toko`, `lat`, `lng`, `foto`, `is_active`, `created_at`, `updated_at`) VALUES
 (2, 6, 'Penjual Nomor 1 Store', 'Toko toko', 'Di Jalan jalan', '6283824032436', NULL, NULL, '1776667187_tokomerahkuning.jpg', 1, '2026-04-20 06:36:29', '2026-04-20 06:39:54'),
-(3, 10, 'Jeko Jika Store', 'Toko menarik', 'Di jalan sana', '6285727287160', NULL, NULL, NULL, 1, '2026-04-20 06:36:29', '2026-04-20 06:44:17');
+(3, 10, 'Jeko Jika Store', 'Toko menarik', 'Di jalan sana', '6285727287160', NULL, NULL, NULL, 1, '2026-04-20 06:36:29', '2026-04-20 06:44:17'),
+(4, 15, 'Toko 1', 'Toko 1 testing', 'Jalan toko 1', '62781028321', NULL, NULL, 'toko_69e87c1d0f0be.jpg', 1, '2026-04-22 07:43:25', '2026-04-22 07:44:21');
 
 -- --------------------------------------------------------
 
@@ -188,7 +201,10 @@ INSERT INTO `users` (`id`, `nama`, `password`, `no_wa`, `role`, `otp_code`, `otp
 (6, 'Penjual Nomor 1', '$2y$12$yMOZl/bWa0SZqgZ8.IuqVeay34yOdM/qlRvR/A1zM9yUuJHclZhaC', '6283824032436', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 01:13:44', '2026-04-20 01:13:59'),
 (10, 'Jeko Jika', '$2y$12$B3TFrP.wBgMON5XQOidyt.MyQwhFQ4nbmTk9sqMr8IxnpU1AvlBGi', '6285727287160', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 01:35:45', '2026-04-20 01:36:14'),
 (11, 'Reno Si', '$2y$12$nAS9wvKAJ.GfAPw297B0dOqJ3Aqj5w3tOgRBzxiXI.Ie7Og9y96uu', '6281232112341', 'umkm', NULL, NULL, 1, NULL, '2026-04-20 06:38:22', '2026-04-20 06:38:28'),
-(12, 'Ahmad Saiful', '$2y$12$gsbMM.We7NdDKbNGUnQPdOlTPe8WiGocdrSFR/g3oPrIsPIxw/C9a', '62818231242123', 'user', NULL, NULL, 1, NULL, '2026-04-20 06:41:44', '2026-04-20 06:41:51');
+(12, 'Ahmad Saiful', '$2y$12$gsbMM.We7NdDKbNGUnQPdOlTPe8WiGocdrSFR/g3oPrIsPIxw/C9a', '62818231242123', 'user', NULL, NULL, 1, NULL, '2026-04-20 06:41:44', '2026-04-20 06:41:51'),
+(13, 'Pembeli 1', '$2y$12$BLmt9LDwzwa1UeLT0M3G7eF5x6s7mNSHzRedLljnRuM/nMhJVBf4C', '6285727285761', 'user', NULL, NULL, 1, NULL, '2026-04-22 07:31:08', '2026-04-22 07:31:21'),
+(14, 'Toko 1', '$2y$12$dmVbTMNNnSJN3WleFiMoaeDOQVCIl25fiJuySU9oLBQtQv85nQTFK', '62989812821', 'user', '291315', '2026-04-22 09:46:39', 0, NULL, '2026-04-22 07:41:39', '2026-04-22 07:41:39'),
+(15, 'Toko 1', '$2y$12$Q56hfpVzlf4FCNFTGqpYq.I6nM8jM0eZz8vwSiAYfR9HuZPCv8Kf2', '62781028321', 'umkm', NULL, NULL, 1, NULL, '2026-04-22 07:42:22', '2026-04-22 07:42:29');
 
 --
 -- Indexes for dumped tables
@@ -247,7 +263,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `detail_pesanan`
 --
 ALTER TABLE `detail_pesanan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `kategori`
@@ -259,7 +275,7 @@ ALTER TABLE `kategori`
 -- AUTO_INCREMENT for table `pesanan`
 --
 ALTER TABLE `pesanan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `produk`
@@ -271,13 +287,13 @@ ALTER TABLE `produk`
 -- AUTO_INCREMENT for table `umkm`
 --
 ALTER TABLE `umkm`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Constraints for dumped tables

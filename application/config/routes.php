@@ -47,6 +47,7 @@ $route['admin/users/(:num)/update']= 'Admin/update_user/$1';
 $route['admin/users/(:num)/hapus'] = 'Admin/hapus_user/$1';
 $route['admin/users']              = 'Admin/kelola_users';
 $route['admin/laporan']            = 'Admin/laporan';
+$route['admin/laporan/export'] = 'Admin/export_laporan';
 
 // -------------------------------------------------------
 // UMKM
@@ -60,8 +61,11 @@ $route['umkm/produk/(:num)/hapus']    = 'Umkm/hapus_produk/$1';
 $route['umkm/produk']                 = 'Umkm/kelola_produk';
 $route['umkm/pesanan/(:num)/status']  = 'Umkm/update_status_pesanan/$1';
 $route['umkm/laporan']                = 'Umkm/laporan';
+$route['umkm/daftar-toko'] = 'Umkm/daftar_toko';
+$route['umkm/simpan-toko'] = 'Umkm/simpan_toko';
 
 // -------------------------------------------------------
 // USER (default fallback — taruh PALING BAWAH)
 // -------------------------------------------------------
 $route['user'] = 'User/index';
+$route['user/riwayat'] = 'User/riwayat';

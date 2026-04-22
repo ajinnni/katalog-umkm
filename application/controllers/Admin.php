@@ -228,4 +228,167 @@ class Admin extends Auth_Controller {  // ✅ fix: ganti MY_Controller → Auth_
 
         return false;
     }
+
+    public function laporan() {
+        $this->load->model(['Pesanan_model', 'Umkm_model']);
+ 
+        // ── Ringkasan pesanan ──
+        $total_pesanan      = $this->db->count_all('pesanan');
+        $total_omzet        = (float) $this->db->select_sum('total_harga')->where('status', 'selesai')->get('pesanan')->row()->total_harga;
+        $pesanan_bulan_ini  = $this->db->where('MONTH(created_at)', date('m'))->where('YEAR(created_at)', date('Y'))->count_all_results('pesanan');
+ 
+        // ── Status pesanan ──
+        $status_pesanan = $this->db
+            ->select('status, COUNT(*) as jumlah')
+            ->group_by('status')
+            ->get('pesanan')->result();
+ 
+        // ── Pesanan per bulan tahun ini ──
+        $pesanan_per_bulan_raw = $this->db
+            ->select("DATE_FORMAT(created_at, '%b') as bulan, MONTH(created_at) as bln_num, COUNT(*) as jumlah, SUM(CASE WHEN status='selesai' THEN total_harga ELSE 0 END) as omzet")
+            ->where('YEAR(created_at)', date('Y'))
+            ->group_by('MONTH(created_at)')
+            ->order_by('MONTH(created_at)', 'ASC')
+            ->get('pesanan')->result();
+ 
+        // Pastikan 12 bulan semua ada
+        $bulan_labels = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $bulan_map    = [];
+        foreach ($pesanan_per_bulan_raw as $b) {
+            $bulan_map[(int)$b->bln_num] = $b;
+        }
+        $pesanan_per_bulan = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $pesanan_per_bulan[] = (object)[
+                'bulan'  => $bulan_labels[$m - 1],
+                'jumlah' => isset($bulan_map[$m]) ? (int)$bulan_map[$m]->jumlah : 0,
+                'omzet'  => isset($bulan_map[$m]) ? (float)$bulan_map[$m]->omzet : 0,
+            ];
+        }
+ 
+        // ── UMKM ──
+        $total_umkm_aktif   = $this->db->where('is_active', 1)->count_all_results('umkm');
+        $total_umkm_pending = $this->db->where('is_active', 0)->count_all_results('umkm');
+        $umkm_pending       = $this->Umkm_model->get_pending();
+ 
+        // ── Top 5 UMKM by omzet ──
+        $top_umkm = $this->db
+            ->select('umkm.id, umkm.nama_toko, users.nama as nama_pemilik, COUNT(pesanan.id) as total_pesanan, SUM(pesanan.total_harga) as total_omzet')
+            ->from('pesanan')
+            ->join('umkm',  'umkm.id = pesanan.umkm_id',   'left')
+            ->join('users', 'users.id = umkm.user_id',     'left')
+            ->where('pesanan.status', 'selesai')
+            ->group_by('pesanan.umkm_id')
+            ->order_by('total_omzet', 'DESC')
+            ->limit(5)
+            ->get()->result();
+ 
+        // ── Top 5 produk terlaris ──
+        $top_produk = $this->db
+            ->select('detail_pesanan.nama_produk, detail_pesanan.harga_satuan, SUM(detail_pesanan.qty) as total_terjual, umkm.nama_toko')
+            ->from('detail_pesanan')
+            ->join('pesanan', 'pesanan.id = detail_pesanan.pesanan_id', 'left')
+            ->join('umkm',    'umkm.id = pesanan.umkm_id',             'left')
+            ->where('pesanan.status', 'selesai')
+            ->group_by('detail_pesanan.nama_produk')
+            ->order_by('total_terjual', 'DESC')
+            ->limit(5)
+            ->get()->result();
+ 
+        // ── Produk ──
+        $total_produk       = $this->db->count_all('produk');
+        $total_produk_aktif = $this->db->where('is_active', 1)->count_all_results('produk');
+ 
+        // ── User ──
+        $total_user       = $this->User_model->count_by_role('user');
+        $total_umkm_user  = $this->User_model->count_by_role('umkm');
+        $total_admin      = $this->User_model->count_by_role('admin');
+        $total_semua_user = $total_user + $total_umkm_user + $total_admin;
+        $total_user_pct   = $total_semua_user > 0 ? round(($total_user  / $total_semua_user) * 100) : 0;
+        $total_umkm_pct   = $total_semua_user > 0 ? round(($total_umkm_user / $total_semua_user) * 100) : 0;
+        $total_admin_pct  = $total_semua_user > 0 ? round(($total_admin / $total_semua_user) * 100) : 0;
+        $user_baru_bulan_ini = $this->db
+            ->where('MONTH(created_at)', date('m'))
+            ->where('YEAR(created_at)', date('Y'))
+            ->count_all_results('users');
+ 
+        // ── Pesanan terbaru ──
+        $pesanan_terbaru = $this->db
+            ->select('pesanan.*, umkm.nama_toko')
+            ->from('pesanan')
+            ->join('umkm', 'umkm.id = pesanan.umkm_id', 'left')
+            ->order_by('pesanan.created_at', 'DESC')
+            ->limit(20)
+            ->get()->result();
+ 
+        $this->render('admin/laporan', [
+            'title'              => 'Laporan',
+            // pesanan
+            'total_pesanan'      => $total_pesanan,
+            'total_omzet'        => $total_omzet,
+            'pesanan_bulan_ini'  => $pesanan_bulan_ini,
+            'status_pesanan'     => $status_pesanan,
+            'pesanan_per_bulan'  => $pesanan_per_bulan,
+            'pesanan_terbaru'    => $pesanan_terbaru,
+            // umkm
+            'total_umkm_aktif'   => $total_umkm_aktif,
+            'total_umkm_pending' => $total_umkm_pending,
+            'umkm_pending'       => $umkm_pending,
+            'top_umkm'           => $top_umkm,
+            // produk
+            'total_produk'       => $total_produk,
+            'total_produk_aktif' => $total_produk_aktif,
+            'top_produk'         => $top_produk,
+            // user
+            'total_user'         => $total_user,
+            'total_umkm_user'    => $total_umkm_user,
+            'total_admin'        => $total_admin,
+            'total_semua_user'   => $total_semua_user,
+            'total_user_pct'     => $total_user_pct,
+            'total_umkm_pct'     => $total_umkm_pct,
+            'total_admin_pct'    => $total_admin_pct,
+            'user_baru_bulan_ini'=> $user_baru_bulan_ini,
+        ]);
+    }
+ 
+    // =========================
+    // EXPORT CSV
+    // =========================
+    public function export_laporan() {
+        $this->load->model('Pesanan_model');
+ 
+        $pesanan = $this->db
+            ->select('pesanan.kode_pesanan, pesanan.nama_pemesan, pesanan.no_wa_pemesan, pesanan.alamat_pengiriman, pesanan.total_harga, pesanan.status, pesanan.created_at, umkm.nama_toko')
+            ->from('pesanan')
+            ->join('umkm', 'umkm.id = pesanan.umkm_id', 'left')
+            ->order_by('pesanan.created_at', 'DESC')
+            ->get()->result();
+ 
+        $filename = 'laporan_pesanan_' . date('Ymd_His') . '.csv';
+ 
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+ 
+        $output = fopen('php://output', 'w');
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8
+ 
+        fputcsv($output, ['Kode Pesanan', 'Nama Pemesan', 'No WA', 'Alamat', 'Total Harga', 'Status', 'Nama Toko', 'Tanggal']);
+ 
+        foreach ($pesanan as $p) {
+            fputcsv($output, [
+                $p->kode_pesanan,
+                $p->nama_pemesan,
+                $p->no_wa_pemesan,
+                $p->alamat_pengiriman,
+                $p->total_harga,
+                $p->status,
+                $p->nama_toko ?? '-',
+                date('d/m/Y H:i', strtotime($p->created_at)),
+            ]);
+        }
+ 
+        fclose($output);
+        exit;
+    }
 }

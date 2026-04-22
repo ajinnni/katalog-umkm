@@ -71,4 +71,14 @@ class Umkm_model extends CI_Model {
         }
         return $this->db->get()->result();
     }
+
+    public function get_pending() {
+    return $this->db
+        ->select('umkm.*, users.nama as nama_pemilik')
+        ->from($this->table)
+        ->join('users', 'users.id = umkm.user_id', 'left')
+        ->where('umkm.is_active', 0)
+        ->order_by('umkm.created_at', 'ASC')
+        ->get()->result();
+}
 }

@@ -151,19 +151,37 @@
                                 </div>
                             </div>
 
+                            <!-- FOTO — wajib saat tambah, opsional saat edit -->
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Foto Produk</label>
+                                <label class="col-sm-3 col-form-label">
+                                    Foto Produk
+                                    <?php if (!isset($product)): ?>
+                                        <span class="text-danger">*</span>
+                                    <?php endif; ?>
+                                </label>
                                 <div class="col-sm-9">
                                     <?php if (isset($product) && $product->foto): ?>
                                         <div class="mb-2">
-                                            <img src="<?= base_url('uploads/produk/' . $product->foto) ?>"
-                                                 height="80" style="object-fit:cover;border-radius:6px"
-                                                 alt="foto produk">
+                                            <img id="previewImg"
+                                                 src="<?= base_url('uploads/produk/' . $product->foto) ?>"
+                                                 height="100" style="object-fit:cover;border-radius:6px;border:2px solid #4e73df;">
                                             <small class="text-muted ml-2">Upload baru untuk mengganti.</small>
                                         </div>
+                                    <?php else: ?>
+                                        <!-- Preview untuk tambah baru -->
+                                        <div id="previewWrap" style="display:none;margin-bottom:10px;">
+                                            <img id="previewImg" src="" alt="preview"
+                                                 style="height:100px;object-fit:cover;border-radius:6px;border:2px solid #4e73df;">
+                                        </div>
                                     <?php endif; ?>
-                                    <input type="file" name="foto" class="form-control-file" accept="image/*">
-                                    <small class="text-muted">Format: JPG, PNG. Maks 2MB.</small>
+
+                                    <input type="file" name="foto" id="fotoInput" class="form-control-file"
+                                           accept="image/jpeg,image/png"
+                                           <?= !isset($product) ? 'required' : '' ?>>
+                                    <small class="text-muted">
+                                        Format: JPG, PNG. Maks 2MB.
+                                        <?= !isset($product) ? '<strong>Wajib diisi.</strong>' : '' ?>
+                                    </small>
                                 </div>
                             </div>
 
@@ -203,5 +221,30 @@
 <script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= base_url('assets/js/sb-admin-2.min.js') ?>"></script>
+<script>
+// Preview foto + validasi ukuran
+document.getElementById('fotoInput').addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran file maksimal 2MB!');
+        this.value = '';
+        <?php if (!isset($product)): ?>
+        document.getElementById('previewWrap').style.display = 'none';
+        <?php endif; ?>
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImg').src = e.target.result;
+        <?php if (!isset($product)): ?>
+        document.getElementById('previewWrap').style.display = 'block';
+        <?php endif; ?>
+    };
+    reader.readAsDataURL(file);
+});
+</script>
 </body>
 </html>

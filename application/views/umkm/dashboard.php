@@ -30,11 +30,11 @@
                 <i class="fas fa-fw fa-box"></i><span>Kelola Produk</span>
             </a>
         </li>
-            <li class="nav-item <?= (strpos(uri_string(), 'umkm/laporan') !== false) ? 'active' : '' ?>">
-                <a class="nav-link" href="<?= base_url('index.php/umkm/laporan') ?>">
-                    <i class="fas fa-fw fa-chart-bar"></i><span>Laporan Penjualan</span>
-                </a>
-            </li>
+        <li class="nav-item <?= (strpos(uri_string(), 'umkm/laporan') !== false) ? 'active' : '' ?>">
+            <a class="nav-link" href="<?= base_url('index.php/umkm/laporan') ?>">
+                <i class="fas fa-fw fa-chart-bar"></i><span>Laporan Penjualan</span>
+            </a>
+        </li>
         <hr class="sidebar-divider d-none d-md-block">
         <div class="text-center d-none d-md-inline">
             <button class="rounded-circle border-0" id="sidebarToggle"></button>
@@ -89,30 +89,71 @@
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
                 <?php endif; ?>
-
-                <!-- Profil -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Profil UMKM</h6>
+                <?php if ($this->session->flashdata('info')): ?>
+                    <div class="alert alert-info alert-dismissible fade show">
+                        <?= $this->session->flashdata('info') ?>
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-1"><strong>Nama:</strong> <?= htmlspecialchars($user->nama ?? '-') ?></p>
-                        <p class="mb-1"><strong>No WA:</strong> <?= htmlspecialchars($user->no_wa ?? '-') ?></p>
-                        <p class="mb-1"><strong>Nama Toko:</strong> <?= htmlspecialchars($umkm->nama_toko ?? '-') ?></p>
-                        <p class="mb-1"><strong>Alamat:</strong> <?= htmlspecialchars($umkm->alamat ?? '-') ?></p>
-                        <p class="mb-0"><strong>Status Toko:</strong>
-                            <?php if (!$umkm): ?>
-                                <span class="badge badge-warning">Belum punya toko</span>
-                            <?php elseif ($umkm->is_active): ?>
-                                <span class="badge badge-success">Aktif</span>
-                            <?php else: ?>
-                                <span class="badge badge-secondary">Nonaktif</span>
-                            <?php endif; ?>
-                        </p>
+                <?php endif; ?>
+
+                <?php if (!$umkm): ?>
+                <!-- ── BELUM PUNYA TOKO ── -->
+                <div class="card shadow mb-4 border-left-warning">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-store-slash fa-4x text-warning mb-3"></i>
+                        <h4 class="font-weight-bold text-gray-800">Kamu belum punya toko!</h4>
+                        <p class="text-muted mb-4">Daftarkan toko kamu sekarang untuk mulai berjualan di UMKM Catalog.</p>
+                        <a href="<?= base_url('index.php/umkm/daftar-toko') ?>" class="btn btn-warning btn-lg">
+                            <i class="fas fa-plus-circle mr-2"></i> Daftarkan Toko Sekarang
+                        </a>
                     </div>
                 </div>
 
-                <!-- Produk -->
+                <?php else: ?>
+                <!-- ── PROFIL TOKO ── -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Profil UMKM</h6>
+                        <?php if (!$umkm->is_active): ?>
+                            <span class="badge badge-warning px-3 py-2">
+                                <i class="fas fa-clock mr-1"></i> Menunggu Aktivasi Admin
+                            </span>
+                        <?php else: ?>
+                            <span class="badge badge-success px-3 py-2">
+                                <i class="fas fa-check-circle mr-1"></i> Toko Aktif
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <?php if (!empty($umkm->foto)): ?>
+                            <div class="col-md-2 text-center mb-3">
+                                <img src="<?= base_url('uploads/toko/' . $umkm->foto) ?>"
+                                     style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid #4e73df;">
+                            </div>
+                            <div class="col-md-10">
+                            <?php else: ?>
+                            <div class="col-md-12">
+                            <?php endif; ?>
+                                <p class="mb-1"><strong>Nama:</strong> <?= htmlspecialchars($user->nama ?? '-') ?></p>
+                                <p class="mb-1"><strong>No WA:</strong> <?= htmlspecialchars($user->no_wa ?? '-') ?></p>
+                                <p class="mb-1"><strong>Nama Toko:</strong> <?= htmlspecialchars($umkm->nama_toko ?? '-') ?></p>
+                                <p class="mb-1"><strong>Alamat:</strong> <?= htmlspecialchars($umkm->alamat ?? '-') ?></p>
+                                <p class="mb-0"><strong>No WA Toko:</strong> <?= htmlspecialchars($umkm->no_wa_toko ?? '-') ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (!$umkm->is_active): ?>
+                <!-- Toko belum aktif — info saja -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Toko kamu sedang menunggu aktivasi dari admin. Kamu belum bisa menambah produk sampai toko diaktifkan.
+                </div>
+
+                <?php else: ?>
+                <!-- ── PRODUK ── -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-primary">Produk Saya</h6>
@@ -175,6 +216,8 @@
                         </div>
                     </div>
                 </div>
+                <?php endif; // is_active ?>
+                <?php endif; // umkm ?>
 
             </div>
         </div>
