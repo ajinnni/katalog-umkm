@@ -15,7 +15,6 @@ class Order extends CI_Controller {
         $keranjang = $this->session->userdata('keranjang') ?? [];
 
         if (empty($keranjang)) {
-            $this->session->set_flashdata('error', 'Keranjang kosong');
             redirect('user/keranjang');
         }
 
@@ -29,7 +28,6 @@ class Order extends CI_Controller {
 
             $subtotal = $produk->harga * $item['qty'];
             $total_harga += $subtotal;
-
             $umkm_id = $produk->umkm_id;
 
             $items[] = [
@@ -55,11 +53,11 @@ class Order extends CI_Controller {
     // PROSES ORDER
     // ===============================
     public function proses() {
-        $keranjang = $this->session->userdata('keranjang') ?? [];
 
-        if (empty($keranjang)) {
-            redirect('user/keranjang');
-        }
+        $user_id = $this->session->userdata('user_id'); // 🔥 WAJIB
+
+        $keranjang = $this->session->userdata('keranjang') ?? [];
+        if (empty($keranjang)) redirect('user/keranjang');
 
         $metode = $this->input->post('metode_pengiriman', TRUE);
 
@@ -68,9 +66,6 @@ class Order extends CI_Controller {
             redirect('order/checkout');
         }
 
-        // ===============================
-        // DATA PEMESAN
-        // ===============================
         $nama_pemesan = '';
         $no_wa = '';
         $alamat = '';
@@ -81,7 +76,6 @@ class Order extends CI_Controller {
             $alamat = $this->input->post('alamat_pengiriman', TRUE);
 
             if (!$nama_pemesan || !$no_wa || !$alamat) {
-                $this->session->set_flashdata('error', 'Lengkapi data pengiriman');
                 redirect('order/checkout');
             }
         } else {
@@ -89,9 +83,6 @@ class Order extends CI_Controller {
             $no_wa = $this->input->post('no_wa_pemesan', TRUE);
         }
 
-        // ===============================
-        // HITUNG TOTAL
-        // ===============================
         $total_harga = 0;
         $items = [];
         $umkm_id = null;
@@ -110,16 +101,12 @@ class Order extends CI_Controller {
             ];
         }
 
-        // ===============================
-        // BUAT KODE
-        // ===============================
         $kode = 'ORD-' . strtoupper(substr(uniqid(), -6)) . '-' . date('Ymd');
 
-        // ===============================
-        // INSERT PESANAN
-        // ===============================
+        // 🔥 FIX: tambah user_id
         $pesanan_id = $this->Pesanan_model->create([
             'kode_pesanan' => $kode,
+            'user_id' => $user_id,
             'umkm_id' => $umkm_id,
             'nama_pemesan' => $nama_pemesan,
             'no_wa_pemesan' => $no_wa,
@@ -130,9 +117,6 @@ class Order extends CI_Controller {
             'catatan' => $this->input->post('catatan', TRUE) ?: null,
         ]);
 
-        // ===============================
-        // INSERT DETAIL
-        // ===============================
         foreach ($items as $item) {
             $this->Pesanan_model->create_detail([
                 'pesanan_id' => $pesanan_id,
@@ -142,44 +126,26 @@ class Order extends CI_Controller {
                 'subtotal' => $item['produk']->harga * $item['qty'],
             ]);
 
-            // update stok
             $this->Product_model->update($item['produk']->id, [
                 'stok' => $item['produk']->stok - $item['qty'],
             ]);
         }
 
-        // ===============================
-        // CLEAR CART
-        // ===============================
         $this->session->unset_userdata('keranjang');
 
         redirect('order/sukses/' . $pesanan_id);
     }
 
     // ===============================
-    // SUKSES
-    // ===============================
-    public function sukses($id) {
-        $pesanan = $this->Pesanan_model->get($id);
-        if (!$pesanan) redirect('order/riwayat');
-
-        $data = [
-            'title' => 'Pesanan Berhasil',
-            'pesanan' => $pesanan
-        ];
-
-        $this->load->view('user/partials/header', $data);
-        $this->load->view('user/order/sukses', $data);
-        $this->load->view('user/partials/footer');
-    }
-
-    // ===============================
-    // RIWAYAT
+    // RIWAYAT (FIXED)
     // ===============================
     public function riwayat() {
+
+        $user_id = $this->session->userdata('user_id'); // 🔥 ambil user
+
         $data = [
             'title' => 'Riwayat Pesanan',
-            'pesanan' => $this->Pesanan_model->get_all()
+            'pesanan' => $this->Pesanan_model->get_by_user($user_id) // 🔥 FIX
         ];
 
         $this->load->view('user/partials/header', $data);

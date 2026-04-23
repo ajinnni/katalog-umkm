@@ -223,6 +223,31 @@ class User extends CI_Controller {
         redirect('index.php/login');
     }
 
+
+    public function sukses($id) {
+    $this->load->model('Pesanan_model');
+    $pesanan = $this->Pesanan_model->get($id);
+
+    if (!$pesanan) show_404();
+
+    $detail = $this->Pesanan_model->get_detail($pesanan->id);
+    $umkm   = $this->Umkm_model->get($pesanan->umkm_id);
+
+    // Generate link WA
+    $no_toko = preg_replace('/\D/', '', $umkm->no_wa_toko ?? '');
+    if (substr($no_toko, 0, 1) === '0') $no_toko = '62' . substr($no_toko, 1);
+
+    $pesan = "Halo, konfirmasi pesanan {$pesanan->kode_pesanan}";
+    $wa_links = [[
+        'toko' => $umkm->nama_toko,
+        'link' => 'https://wa.me/' . $no_toko . '?text=' . urlencode($pesan),
+        'kode' => $pesanan->kode_pesanan,
+    ]];
+
+    $this->load->view('user/partials/header', ['title' => 'Pesanan Berhasil']);
+    $this->load->view('user/sukses', ['wa_links' => $wa_links]);
+    $this->load->view('user/partials/footer');
+}
     // -------------------------------------------------------
     // PRIVATE HELPERS
     // -------------------------------------------------------

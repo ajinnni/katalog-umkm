@@ -79,6 +79,14 @@ class Pesanan_model extends CI_Model {
 
     // ── USER SIDE ─────────────────────────────────────────
 
+
+    public function get_by_user($user_id) {
+    return $this->db
+        ->where('user_id', $user_id)
+        ->order_by('id', 'DESC')
+        ->get('pesanan')
+        ->result();
+}
     public function get_by_user_with_details($user_id) {
         $pesanan = $this->db
             ->select('pesanan.*, umkm.nama_toko, umkm.no_wa_toko')

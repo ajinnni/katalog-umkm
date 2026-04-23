@@ -69,3 +69,4 @@ $route['umkm/simpan-toko'] = 'Umkm/simpan_toko';
 // -------------------------------------------------------
 $route['user'] = 'User/index';
 $route['user/riwayat'] = 'User/riwayat';
+$route['order/sukses/(:num)'] = 'User/sukses/$1';
