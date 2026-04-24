@@ -39,7 +39,7 @@
                         <td><?= $i + 1 ?></td>
                         <td>
                             <?php if (!empty($u->foto)): ?>
-                                <img src="<?= base_url('uploads/umkm/' . $u->foto) ?>"
+                                <img src="<?= base_url('uploads/toko/' . $u->foto)?>"
                                      width="50" height="50" style="object-fit:cover;border-radius:4px">
                             <?php else: ?>
                                 <span class="text-muted">-</span>
